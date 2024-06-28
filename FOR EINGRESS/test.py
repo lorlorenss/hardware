@@ -34,7 +34,7 @@ try:
         match = re.search(r'ID:(\d+)', response)
         if match:
             enrollid = match.group(1)
-            print(f"Enrolled ID: {enrollid}")
+            print(f"Verified Id: {enrollid}")
             
             simulate_keyboard_input(enrollid)
             time.sleep(0.1)  # Wait for 100 milliseconds
