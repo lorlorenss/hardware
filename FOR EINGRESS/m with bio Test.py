@@ -23,7 +23,7 @@ print("Serial OK")
 # Automatically run 'firefox --remote-debugging-port=9222 --kiosk' in the command prompt=subprocess.Popen(['firefox', '--remote-debugging-port=9222','--kiosk'], shell=False)
 #subprocess.Popen(['firefox', '--remote-debugging-port=9222','--kiosk'], shell=False)
 #subprocess.Popen(['chromium-browser', '--remote-debugging-port=9222', '--start-fullscreen'], shell=False)
-subprocess.Popen(['chromium-browser', '--remote-debugging-port=9222], shell=False)
+subprocess.Popen(['chromium-browser', '--remote-debugging-port=9222'], stderr=subprocess.DEVNULL, shell=False)
 
 previous_url = None
 shutdown_triggered = False  # Flag to track if shutdown has been triggered
@@ -66,7 +66,24 @@ def shutdown_pi():
             return
         time.sleep(1)
     subprocess.run(['sudo', 'shutdown', 'now'])
-    
+
+def identifyId():
+    time.sleep(1)
+    ser.write("identify \n".encode('utf-8'))
+    while ser.in_waiting <=0:
+        time.sleep(0.1)
+        response = ser.readline().decode('utf-8').rstrip()
+        print (response)
+
+        match = re.search(r'ID.(\d+)', response)
+        if match:
+            verifiedid = match.group(1)
+            print(f"Verified ID: {verifiedid}")
+                        
+            simulate_keyboard_input(verifiedid)
+            time.sleep(0.1)
+            press_enter()
+
     # Function to simulate keyboard input
 def simulate_keyboard_input(text):
     pyautogui.typewrite(text)
@@ -91,31 +108,17 @@ try:
         current_url = get_current_url()
         if current_url:
             if current_url != previous_url:
-                if current_url.endswith == "/landingPage":
+                if current_url.endswith("/landingPage"):
                     print("Landing page opened!")
                     lock_door()  # Lock the door if landing page or another page is open
+                  
+                    identifyId()
                     if shutdown_triggered:
                         print("Shutdown canceled.")
                         shutdown_triggered = False
-                elif current_url.endswith == "/confirmation":
-                    time.sleep(1)
-                    ser.write("identify \n".encode('utf-8'))
-
-                    while ser.in_waiting <=0:
-                        time.sleep(0.1)
-                    response = ser.readline().decode('utf-8').rstrip()
-                    print (response)
-
-                    match = re.search(r'ID.(\d+)', response)
-                    if match:
-                        verifiedid = match.group(1)
-                        print(f"Verified ID: {verifiedid}")
-                        
-                        simulate_keyboard_input(verifiedid)
-                        time.sleep(0.1)
-                        press_enter()
-
-                elif current_url.endswith == "/afterLoginPage":
+                elif current_url.endswith("/confirmation"):
+                    print("Landing page opened!")
+                elif current_url.endswith("/afterLoginPage"):
                     print("Someone Logged In")
                     unlock_door()  # Unlock the door if after login page is open
                 elif "/shutdown" in current_url and not shutdown_triggered:
