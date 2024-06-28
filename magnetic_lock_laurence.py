@@ -75,13 +75,14 @@ try:
         current_url = get_current_url()
         if current_url:
             if current_url != previous_url:
-                if current_url == "http://192.168.1.2:4200/landingPage":
+                if current_url.endswith("/landingPage"):
                     print("Landing page opened!")
                     lock_door()  # Lock the door if landing page or another page is open
                     if shutdown_triggered:
                         print("Shutdown canceled.")
                         shutdown_triggered = False
-                elif current_url == "http://192.168.1.2:4200/afterLoginPage":
+                elif current_url.endswith("/confirmation"):
+                elif current_url.endswith("/afterLoginPage"):
                     print("Someone Logged In")
                     unlock_door()  # Unlock the door if after login page is open
                 elif "/shutdown" in current_url and not shutdown_triggered:
