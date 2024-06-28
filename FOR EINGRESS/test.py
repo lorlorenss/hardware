@@ -23,9 +23,6 @@ try:
         time.sleep(1)
         #print("Send message to Arduino")
         ser.write("identify \n".encode('utf-8'))
-        0
-        0
-        
 
         while ser.in_waiting <= 0:
             time.sleep(0.01)
