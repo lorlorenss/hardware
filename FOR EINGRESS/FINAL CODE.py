@@ -71,6 +71,47 @@ def shutdown_pi():
         time.sleep(1)
     subprocess.run(['sudo', 'shutdown', 'now'])
 
+def run_standby_script():
+    try:
+        while True:
+            time.sleep(1)
+            ser.write("standby \n".encode('utf-8'))
+
+            while ser.in_waiting <= 0:
+                time.sleep(0.01)
+            
+            response = ser.readline().decode('utf-8').rstrip()
+            print(response)  # This should print "ID: <enrollid> Enrolling Successful"
+
+    except KeyboardInterrupt:
+        print("Keyboard interrupt!, Closing communication")
+        ser.close()
+
+def run_enroll_script():
+    try:
+        while True:
+            time.sleep(1)
+            #print("Send message to Arduino")
+            ser.write("enroll \n".encode('utf-8'))
+
+            while ser.in_waiting <= 0:
+                time.sleep(0.01)
+            
+            response = ser.readline().decode('utf-8').rstrip()
+            print(response)  # This should print "ID: <enrollid> Enrolling Successful"
+
+            # Parse the enrollid from the response
+           match = re.search(r'ID:(\d+)', response)
+            if match:
+                registerid = match.group(1)
+                print(f"Enrolled Id: {registerid}")
+                input_verified_id(registerid)  # Use the function to input verified ID
+                break
+    except KeyboardInterrupt:
+        print("Keyboard interrupt!, Closing communication")
+        ser.close()
+
+
 def run_id_script():
     try:
         while True:
@@ -128,6 +169,7 @@ try:
         if current_url:
             if current_url != previous_url:
                 if current_url.endswith("/landingPage"):
+                    
                     print("Landing page opened!")
                     lock_door()  # Lock the door if landing page or another page is open
                     if shutdown_triggered:

@@ -21,22 +21,20 @@ void loop() {
      else if (message.indexOf("deleteAll") != -1) {  // Check if the word "enroll" exists
       DeleteAll();  // Run the specific function
     }
+    else if (message.indexOf("standby") != -1) {  // Check if the word "enroll" exists
+      Standby();  // Run the specific function
+    }
   }
 }
 
 void DeleteAll(){
+ fps.Open();
 fps.DeleteAll();
 Serial.println("Deleted All fingerprints");
 }
 
-
-void runBiometricFunction() {
-  String response = "Biometric function executed " + String(counter);
-  counter++;
-  Serial.println(response);  // Send a response back
-}
-
 void Enroll() {
+  fps.Open();
   // Enroll test
   fps.SetLED(true); // turn on the LED inside the fps
 
@@ -93,6 +91,7 @@ void Enroll() {
 }
 
 void Identify(){
+   fps.Open();
   fps.SetLED(true);
   if (fps.IsPressFinger())
   {
@@ -116,8 +115,15 @@ void Identify(){
 }
 
 void Blink(){
+   fps.Open();
         fps.SetLED(false);
         delay(1000);
         fps.SetLED(true);
         delay(1000);
+}
+
+void Standby(){
+    Serial.println("Fingerprint on standby");
+    fps.Close();
+    break;
 }
