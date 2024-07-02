@@ -3,6 +3,28 @@ import requests
 import json
 import time
 import RPi.GPIO as GPIO
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+
+
+
+
+chromedriver_path = '/usr/bin/chromedriver'
+
+# Set Chrome options
+chrome_options = Options()
+chrome_options.add_argument('--no-sandbox')  # Required for running as root in Linux
+chrome_options.add_argument('--disable-dev-shm-usage')  # Required for running as root in Linux
+
+# Initialize webdriver
+driver = webdriver.Chrome(service=Service(executable_path=chromedriver_path), options=chrome_options)
+
+# Example: Open a webpage
+driver.get('https://192.168.42.64.com')
+time.sleep(5)  # Adjust this delay as needed
 
 GPIO.setmode(GPIO.BCM)
 
@@ -14,9 +36,9 @@ GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Automatically run 'firefox --remote-debugging-port=9222 --kiosk' in the command prompt=subprocess.Popen(['firefox', '--remote-debugging-port=9222','--kiosk'], shell=False)
 #subprocess.Popen(['firefox', '--remote-debugging-port=9222','--kiosk'], shell=False)
-subprocess.Popen(['chromium-browser', '--remote-debugging-port=9222', '--start-fullscreen'], shell=False)
+#subprocess.Popen(['chromium-browser', '--remote-debugging-port=9222', '--start-fullscreen'], shell=False)
 #subprocess.Popen(['chromium-browser', '--remote-debugging-port=9222'], shell=False)
-print("CMD Firefox debugging started!")
+#print("CMD Firefox debugging started!")
 
 previous_url = None
 shutdown_triggered = False  # Flag to track if shutdown has been triggered
@@ -82,7 +104,8 @@ try:
                     if shutdown_triggered:
                         print("Shutdown canceled.")
                         shutdown_triggered = False
-                
+                elif current_url.endswith("/afterLoginPage"):
+                    subprocess.run(['python3', 'test.py'], capture_output=True, text=True)
                 elif current_url.endswith("/afterLoginPage"):
                     print("Someone Logged In")
                     unlock_door()  # Unlock the door if after login page is open

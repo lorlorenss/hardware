@@ -10,12 +10,16 @@ void setup() {
 }
 
 void loop() {
+  Blink();
   if (Serial.available() > 0) {
     String message = Serial.readStringUntil('\n');  // Read until newline
     if (message.indexOf("enroll") != -1) {  // Check if the word "biometric" exists
       Enroll();  // Run the specific function
     } else if (message.indexOf("identify") != -1) {  // Check if the word "enroll" exists
       Identify();  // Run the specific function
+    }
+     else if (message.indexOf("deleteAll") != -1) {  // Check if the word "enroll" exists
+      DeleteAll();  // Run the specific function
     }
   }
 }
@@ -94,15 +98,8 @@ void Identify(){
   {
     fps.CaptureFinger(false);
     int id = fps.Identify1_N();
-    
-       /*Note:  GT-521F52 can hold 3000 fingerprint templates
-                GT-521F32 can hold 200 fingerprint templates
-                 GT-511C3 can hold 200 fingerprint templates. 
-                GT-511C1R can hold 20 fingerprint templates.
-       Make sure to change the id depending on what
-       model you are using */
-    if (id <200) //<- change id value depending model you are using
-    {//if the fingerprint matches, provide the matching template ID
+    if (id <200) 
+    {
       Serial.print("ID:");
       Serial.println(id);
     }
@@ -116,4 +113,11 @@ void Identify(){
     Serial.println("Please press finger");
   }
   delay(100);
+}
+
+void Blink(){
+        fps.SetLED(false);
+        delay(1000);
+        fps.SetLED(true);
+        delay(1000);
 }
