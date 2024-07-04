@@ -6,37 +6,32 @@ FPS_GT511C3 fps(4, 5); // (Arduino SS_RX = pin 4, Arduino SS_TX = pin 5)
 
 void setup() {
   Serial.begin(115200);  // Start serial communication at 115200 baud
-  Standby();
+  fps.Open();
 }
 
 void loop() {
+  Blink();
   if (Serial.available() > 0) {
     String message = Serial.readStringUntil('\n');  // Read until newline
     if (message.indexOf("enroll") != -1) {  // Check if the word "biometric" exists
-     fps.Open();
       Enroll();  // Run the specific function
     } else if (message.indexOf("identify") != -1) {  // Check if the word "enroll" exists
-     fps.Open();
       Identify();  // Run the specific function
     }
      else if (message.indexOf("deleteAll") != -1) {  // Check if the word "enroll" exists
-      fps.Open();
       DeleteAll();  // Run the specific function
-    }
-    else if (message.indexOf("standby") != -1) {  // Check if the word "enroll" exists
-     fps.Open();
-      Standby();  // Run the specific function
     }
   }
 }
 
 void DeleteAll(){
+ fps.Open();
 fps.DeleteAll();
 Serial.println("Deleted All fingerprints");
 }
 
 void Enroll() {
-  Serial.println("Wait for instructions");
+  fps.Open();
   // Enroll test
   fps.SetLED(true); // turn on the LED inside the fps
 
@@ -79,17 +74,36 @@ void Enroll() {
             // if the fingerprint matches, provide the matching template ID
             Serial.print("Verified ID: ");
             Serial.println(id);
+            fps.Close();
+            return;
           }
           Serial.print("ID: ");
           Serial.println(enrollid); // Display the enrolled ID
           Serial.print("Enrolling Successful");
+          fps.Close();
+          return;
         } else {
           Serial.print("Enrolling Failed with error code: ");
           Serial.println(iret);
+          Serial.print("Returning");
+          fps.Close();
+          return;
         }
-      } else Serial.println("Failed to capture third finger");
-    } else Serial.println("Failed to capture second finger");
-  } else Serial.println("Failed to capture first finger");
+      } 
+      else Serial.println("Failed to capture third finger");
+      Serial.print("Returning");
+          fps.Close();
+          return;
+    } 
+    else Serial.println("Failed to capture second finger");
+    Serial.print("Returning");
+          fps.Close();
+          return;
+  } 
+  else Serial.println("Failed to capture first finger");
+  Serial.print("Returning");
+          fps.Close();
+          return;
 }
 
 void Identify(){
@@ -122,11 +136,4 @@ void Blink(){
         delay(1000);
         fps.SetLED(true);
         delay(1000);
-}
-
-void Standby(){
-    Serial.println("Fingerprint on standby");
-    fps.SetLED(false);
-    fps.Close();
-    
 }

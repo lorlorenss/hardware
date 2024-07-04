@@ -37,6 +37,7 @@ ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 time.sleep(2)  # Wait for the serial connection to initialize
 ser.reset_input_buffer()
 print("Serial OK")
+driver.maximize_window()
 
 previous_url = None
 shutdown_triggered = False  # Flag to track if shutdown has been triggered
