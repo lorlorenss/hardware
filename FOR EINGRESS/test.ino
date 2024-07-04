@@ -6,7 +6,6 @@ FPS_GT511C3 fps(4, 5); // (Arduino SS_RX = pin 4, Arduino SS_TX = pin 5)
 
 void setup() {
   Serial.begin(115200);  // Start serial communication at 115200 baud
-  fps.Open();
 }
 
 void loop() {
@@ -14,27 +13,30 @@ void loop() {
   if (Serial.available() > 0) {
     String message = Serial.readStringUntil('\n');  // Read until newline
     if (message.indexOf("enroll") != -1) {  // Check if the word "biometric" exists
+     fps.Open();
       Enroll();  // Run the specific function
     } else if (message.indexOf("identify") != -1) {  // Check if the word "enroll" exists
+     fps.Open();
       Identify();  // Run the specific function
     }
      else if (message.indexOf("deleteAll") != -1) {  // Check if the word "enroll" exists
+      fps.Open();
       DeleteAll();  // Run the specific function
     }
     else if (message.indexOf("standby") != -1) {  // Check if the word "enroll" exists
+     fps.Open();
       Standby();  // Run the specific function
     }
   }
 }
 
 void DeleteAll(){
- fps.Open();
 fps.DeleteAll();
 Serial.println("Deleted All fingerprints");
 }
 
 void Enroll() {
-  fps.Open();
+  Serial.println("Wait for instructions");
   // Enroll test
   fps.SetLED(true); // turn on the LED inside the fps
 
@@ -124,6 +126,7 @@ void Blink(){
 
 void Standby(){
     Serial.println("Fingerprint on standby");
+    fps.SetLED(false);
     fps.Close();
     break;
 }
