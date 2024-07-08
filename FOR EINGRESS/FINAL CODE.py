@@ -51,6 +51,28 @@ def get_current_url():
         print("Error getting current URL:", e)
         return None
 
+def run_enroll_script():
+    try:
+        while True:
+            time.sleep(1)
+            # Send message to Arduino
+            ser.write("enroll \n".encode('utf-8'))
+
+            while ser.in_waiting <= 0:
+                time.sleep(0.01)
+            
+            response = ser.readline().decode('utf-8').rstrip()
+            print(f"response: {response}")
+            input_verified_id(response)  # Use the function to input verified ID
+
+            if "Returning" in response:
+                print("breaking enroll function")
+                break
+
+    except KeyboardInterrupt:
+        print("Keyboard interrupt!, Closing communication")
+        ser.close()
+
 def lock_door():
     GPIO.output(RELAY_PIN, GPIO.LOW)
     print("Door locked")
@@ -137,7 +159,6 @@ try:
             if current_url != previous_url:
                 if current_url.endswith("/landingPage"):
                     #run_deleteAll_script()
-                    
                     print("Landing page opened!")
                     lock_door()  # Lock the door if landing page or another page is open
                     if shutdown_triggered:
