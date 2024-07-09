@@ -3,11 +3,11 @@
 
 int counter = 0;
 FPS_GT511C3 fps(4, 5); // (Arduino SS_RX = pin 4, Arduino SS_TX = pin 5)
-
+bool enrollInProgress = false;
 void setup() {
   Serial.begin(115200);  // Start serial communication at 115200 baud
   fps.Open();
-  bool enrollInProgress = false;
+  
 }
 
 void loop() {
@@ -134,10 +134,14 @@ void Identify(){
     {
       Serial.print("ID:");
       Serial.println(id);
+      Serial.println("Returning");
+      return;
     }
     else
     {//if unable to recognize
       Serial.println("Finger not found");
+      Serial.println("Returning");
+      return;
     }
   }
   else

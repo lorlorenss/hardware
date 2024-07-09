@@ -1,8 +1,7 @@
 import time
 import serial
-import re
 
-ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 time.sleep(2)  # Wait for the serial connection to initialize
 ser.reset_input_buffer()
 print("Serial OK")
@@ -14,17 +13,14 @@ def run_id_script():
         while True:
             time.sleep(1)
             ser.write("identify \n".encode('utf-8'))
-
             while ser.in_waiting <= 0:
                 time.sleep(0.01)
-            
             response = ser.readline().decode('utf-8').rstrip()
-            print(response)  # This should print "ID: <enrollid> Enrolling Successful"
-
-            # Parse the enrollid from the response
-            match = re.search(r'ID:(\d+)', response)
-            break
-
+            print(response)
+            if "Returning" in response:
+                time.sleep(3)
+                return
+                
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
         ser.close()
@@ -34,18 +30,19 @@ def run_deleteAll_script():
         while True:
             time.sleep(1)
             ser.write("deleteAll \n".encode('utf-8'))
-
             while ser.in_waiting <= 0:
                 time.sleep(0.01)
-            
             response = ser.readline().decode('utf-8').rstrip()
-            print(response)  # This should print "ID: <enrollid> Enrolling Successful"
-
-            # Parse the enrollid from the response
-            match = re.search(r'ID:(\d+)', response)
-            break
-            
-
+            print(response)
+            if "Returning" in response:
+                print("Enroll completed")
+                enrollInProgress = False
+                time.sleep(3)
+                return
+            elif "ID" in response:
+                enrollInProgress = False
+                time.sleep(3)
+                return
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
         ser.close()
@@ -61,26 +58,10 @@ def run_enroll_script():
                 response = ser.readline().decode('utf-8').rstrip()
                 print(f"Response: {response}")
                 if "Returning" in response:
-                    print("Enroll completed")
-                    enrollInProgress = False
-                    time.sleep(3)
-                    return
-                elif "Failed" in response:
-                    print("Enrollment failed")
-                    enrollInProgress = False
-                    time.sleep(3)
-                    return
-                elif "/landingPage" in response or "/registration" in response:
-                    print("Unexpected page redirection")
-                    enrollInProgress = False
-                    time.sleep(3)
-                    return
-                time.sleep(0.1)
+                    time.sleep(0.1)
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
         ser.close()
-
-
 
 def handle_serial_input(input_char):
     global enrollInProgress
@@ -109,22 +90,19 @@ def display_choices():
     print("4: Reset Enroll Status")
 
 try:
-    # Main loop
+    time.sleep(3)
     while True:
         display_choices()
-        
-        # Check if there's input from serial
         if ser.in_waiting > 0:
             input_char = ser.read().decode('utf-8').strip()
+            print(f"Serial input: {input_char}")
             handle_serial_input(input_char)
         else:
-            # If no serial input, wait for manual input
             manual_input = input("Enter your choice (1-4): ").strip()
             if manual_input:
                 handle_serial_input(manual_input)
-
 except KeyboardInterrupt:
-    pass  # Do nothing on keyboard interrupt
+    pass
 finally:
     ser.close()
     print("Serial connection closed")
