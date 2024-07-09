@@ -112,13 +112,11 @@ def run_id_script(timeout=10):
                     enrollInProgress = False
                     return
                 
-                if "Finger not found" in response:
-                    operationComplete = True
-                    enrollInProgress = False
-                    input_verified_id("Error")
-                    return
             elif time.time() - start_time > timeout:
                 print("Identification timeout, returning to main loop.")
+                operationComplete = True
+                enrollInProgress = False
+                input_verified_id("Timeout")
                 return
 
     except KeyboardInterrupt:
