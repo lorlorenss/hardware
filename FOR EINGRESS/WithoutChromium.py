@@ -39,6 +39,7 @@ def run_id_script(timeout=10):
                 print(response)
                 if "Returning" in response:
                     operationComplete = True
+                    enrollInProgress = False
                     time.sleep(3)
                     return
             elif time.time() - start_time > timeout:
@@ -82,6 +83,7 @@ def run_deleteAll_script():
                 print(response)
                 if "Returning" in response:
                     operationComplete = True
+                    enrollInProgress = False
                     time.sleep(3)
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
@@ -98,6 +100,7 @@ def run_enroll_script():
                 print(response)
                 if "Returning" in response:
                     operationComplete = True
+                    enrollInProgress = False
                     time.sleep(3)
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
@@ -134,9 +137,6 @@ def handle_serial_input(input_char):
     elif input_char == '3':
         if not enrollInProgress:
             run_deleteAll_script()
-    elif input_char == '4':
-        enrollInProgress = False
-        print("Setting enroll in progress to false")
     else:
         print("Invalid input")
 
@@ -145,7 +145,7 @@ def display_choices():
     print("1: Enroll")
     print("2: Identify")
     print("3: Delete All")
-    print("4: Reset Enroll Status")
+
 
 try:
     time.sleep(3)
