@@ -7,64 +7,102 @@ ser.reset_input_buffer()
 print("Serial OK")
 
 enrollInProgress = False
+operationComplete = False
 
-def run_id_script():
+# def run_id_script():
+#     global operationComplete
+#     try:
+#         ser.write("identify \n".encode('utf-8'))
+#         while not operationComplete:
+#             if ser.in_waiting > 0:
+#                 response = ser.readline().decode('utf-8').rstrip()
+#                 print(response)
+#                 if "Returning" in response:
+#                     operationComplete = True
+#                     time.sleep(3)
+#                     return
+#     except KeyboardInterrupt:
+#         print("Keyboard interrupt!, Closing communication")
+#         ser.close()
+
+def run_id_script(timeout=5):
+    global operationComplete
+    start_time = time.time()
     try:
-        while True:
-            time.sleep(1)
-            ser.write("identify \n".encode('utf-8'))
-            while ser.in_waiting <= 0:
-                time.sleep(0.01)
-            response = ser.readline().decode('utf-8').rstrip()
-            print(response)
-            if "Returning" in response:
-                time.sleep(3)
+        ser.write("identify \n".encode('utf-8'))
+        while not operationComplete:
+            if ser.in_waiting > 0:
+                response = ser.readline().decode('utf-8').rstrip()
+                print(response)
+                if "Returning" in response:
+                    operationComplete = True
+                    time.sleep(3)
+                    return
+            elif time.time() - start_time > timeout:
+                print("Identification timeout, returning to main loop.")
                 return
-                
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
         ser.close()
 
+# def run_id_script(timeout=5):
+#     global operationComplete
+#     start_time = time.time()
+#     try:
+#         ser.write("identify \n".encode('utf-8'))
+#         while not operationComplete:
+#             if ser.in_waiting > 0:
+#                 while ser.in_waiting <= 0:
+#                     response = ser.readline().decode('utf-8').rstrip()
+#                     print(response)
+#                     if "Returning" in response:
+#                         operationComplete = True
+#                         time.sleep(3)
+#                         return
+#             elif time.time() - start_time > timeout:
+#                 print("Identification timeout, returning to main loop.")
+#                 return
+#     except KeyboardInterrupt:
+#         print("Keyboard interrupt!, Closing communication")
+#         ser.close()
+
+
+
+
 def run_deleteAll_script():
+    global operationComplete
     try:
-        while True:
-            time.sleep(1)
-            ser.write("deleteAll \n".encode('utf-8'))
-            while ser.in_waiting <= 0:
-                time.sleep(0.01)
-            response = ser.readline().decode('utf-8').rstrip()
-            print(response)
-            if "Returning" in response:
-                print("Enroll completed")
-                enrollInProgress = False
-                time.sleep(3)
-                return
-            elif "ID" in response:
-                enrollInProgress = False
-                time.sleep(3)
-                return
+        ser.write("deleteAll \n".encode('utf-8'))
+        while not operationComplete:
+            if ser.in_waiting > 0:
+                response = ser.readline().decode('utf-8').rstrip()
+                print(response)
+                if "Returning" in response:
+                    operationComplete = True
+                    time.sleep(3)
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
         ser.close()
 
 def run_enroll_script():
-    global enrollInProgress
+    global enrollInProgress, operationComplete
     enrollInProgress = True
     try:
-        while True:
-            time.sleep(1)
-            ser.write("enroll \n".encode('utf-8'))
-            while ser.in_waiting > 0:
+        ser.write("enroll \n".encode('utf-8'))
+        while not operationComplete:
+            if ser.in_waiting > 0:
                 response = ser.readline().decode('utf-8').rstrip()
                 print(f"Response: {response}")
                 if "Returning" in response:
-                    time.sleep(0.1)
+                    operationComplete = True
+                    time.sleep(3)
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
         ser.close()
 
 def handle_serial_input(input_char):
-    global enrollInProgress
+    global enrollInProgress, operationComplete
+    operationComplete = False  # Reset the operation complete flag
     if input_char == '1':
         if not enrollInProgress:
             run_enroll_script()

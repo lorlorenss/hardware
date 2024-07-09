@@ -1,6 +1,7 @@
 
 #define ENROLL_TIME 5000 //milliseconds
 #define PRINTS_MAX 200 //200=GT_521F32 3000=GT_521F52
+
 #include <GT_521F.h>
 
 //Uncomment for Software Serial
@@ -40,31 +41,16 @@ void setup()
 
 void loop()
 {
-    
   if(Serial.available()!=0)
-  {      
-    String message = Serial.readStringUntil('\n');   
-      if (message.indexOf("count") != -1) {
-      
-      
-        fps.open(false);
-        uint16_t fingerPrintCount = fps.getEnrollCount();
-        if(fingerPrintCount<NACK_TIMEOUT)
-        {
-          Serial.print("EnrollCount: ");
-          Serial.println(fingerPrintCount);
-        }
-        else
-        {
-          Serial.print("EnrollCount FAIL: ");
-          Serial.println(fingerPrintCount);
-        }
-      }
-      else if (message.indexOf("enroll") != -1) {
+  {        
+    String message = Serial.readStringUntil('\n');
+
+      if (message.indexOf("enroll") != -1) {
+     
         uint16_t State = FingerPrintEnrollment();
         if(State==NO_ERROR)
         {
-          Serial.print("ID: ");
+          Serial.print("Add Finger Success ID: ");
           Serial.println(fps.getEnrollCount()-1);
         }
         else
@@ -74,7 +60,7 @@ void loop()
         }
 
       }
-       else if (message.indexOf("identify") != -1) {
+      else if (message.indexOf("identify") != -1) {
           uint16_t openStatus = fps.open(true);
           if(openStatus == NO_ERROR) 
           {
@@ -91,20 +77,21 @@ void loop()
               }
               if(checkFinger == FINGER_IS_PRESSED)
               {
-                
+                Serial.println("-FINGER IS PRESSED");
                 checkFinger = fps.captureFinger();
                 if(checkFinger == NO_ERROR)
                 {
+                  Serial.println("-FINGER CAPTURED");
                   checkFinger = fps.identify();
                   if(checkFinger < PRINTS_MAX)
                   {
                     fps.cmosLed(false);
-                    Serial.print("ID: ");
+                    Serial.print("-FINGER FOUND ID: ");
                     Serial.println(checkFinger);
                   }
                   else
                   {
-                    Serial.println("FINGER NOT FOUND");
+                    Serial.println("-FINGER NOT FOUND");
                   }
                 }
                 else
@@ -114,13 +101,13 @@ void loop()
               }
               else
               {
-                Serial.print("FINGER FAIL: ");
+                Serial.print("-FINGER FAIL: ");
                 Serial.println(checkFinger,HEX);
               }
             }
             else
             {
-              Serial.print("LED FAIL: ");
+              Serial.print("-LED FAIL: ");
               Serial.println(checkLED,HEX);
             }
           } 
@@ -131,7 +118,7 @@ void loop()
             Serial.println();
           }
       }
-     if (message.indexOf("deleteAll") != -1) {
+       else if (message.indexOf("deleteAll") != -1) {
         uint16_t State = fps.deleteAll();
         if(State==NO_ERROR)
         {
@@ -143,11 +130,17 @@ void loop()
            Serial.println(State,HEX);    
         }
       }
+      else
+      {
+        Serial.print(check);
+        Serial.println("-Option Invalid");
+
+      }
     }
 }
 
 
-\
+
 uint8_t FingerPrintEnrollment()
 {
   uint8_t enrollState = NO_ERROR;
@@ -198,16 +191,16 @@ uint8_t FingerPrintEnrollment()
             }                    
             if(enrollState == FINGER_IS_PRESSED)
             {
-           
+              Serial.println("FINGER IS PRESSED");
               enrollState = NO_ERROR;
               enrollState = fps.captureFinger(1);
               if(enrollState==NO_ERROR)
               {
-               
+                Serial.println("Finger Captured");
                 enrollState = fps.enrollFinger(i);
                 if(enrollState == NO_ERROR)
                 {  
-                  
+                  Serial.println("Finger Enrolled");
                 }
                 else
                 {

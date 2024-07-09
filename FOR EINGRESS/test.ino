@@ -33,6 +33,8 @@ void DeleteAll(){
  fps.Open();
 fps.DeleteAll();
 Serial.println("Deleted All fingerprints");
+Serial.println("Returning");
+return;
 }
 
 void Enroll() {
@@ -89,6 +91,7 @@ fps.Open();
           Serial.print("Enrolling Successful");
           fps.Close();
           enrollInProgress = false;
+          Serial.print("Returning");
           return;
         } else {
           Serial.print("Enrolling Failed with error code: ");
