@@ -38,7 +38,7 @@ return;
 }
 
 void Enroll() {
-  if(enrollInProgress == false){
+
 fps.Open();
   // Enroll test
   fps.SetLED(true); // turn on the LED inside the fps
@@ -119,10 +119,7 @@ fps.Open();
           fps.Close();
           enrollInProgress = false;
           return;
-  }
-  else{
-    return;
-  }
+
 
 }
 

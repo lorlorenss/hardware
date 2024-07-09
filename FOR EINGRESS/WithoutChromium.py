@@ -25,10 +25,13 @@ operationComplete = False
 #         print("Keyboard interrupt!, Closing communication")
 #         ser.close()
 
-def run_id_script(timeout=5):
+def run_id_script(timeout=10):
     global operationComplete
     start_time = time.time()
     try:
+        time.sleep(2)
+        print("Please press finger")
+        time.sleep(2)
         ser.write("identify \n".encode('utf-8'))
         while not operationComplete:
             if ser.in_waiting > 0:
@@ -92,13 +95,30 @@ def run_enroll_script():
         while not operationComplete:
             if ser.in_waiting > 0:
                 response = ser.readline().decode('utf-8').rstrip()
-                print(f"Response: {response}")
+                print(response)
                 if "Returning" in response:
                     operationComplete = True
                     time.sleep(3)
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
         ser.close()
+
+# def run_enroll_script():
+#     global enrollInProgress, operationComplete
+#     enrollInProgress = True
+#     try:
+#         ser.write("enroll \n".encode('utf-8'))
+#         while not operationComplete:
+            
+#             if ser.in_waiting > 0:
+#                 response = ser.readline().decode('utf-8').rstrip()
+#                 print(f"Response: {response}")
+#                 if "Returning" in response:
+#                     operationComplete = True
+#                     time.sleep(3)
+#     except KeyboardInterrupt:
+#         print("Keyboard interrupt!, Closing communication")
+#         ser.close()
 
 def handle_serial_input(input_char):
     global enrollInProgress, operationComplete
@@ -132,9 +152,10 @@ try:
     while True:
         display_choices()
         if ser.in_waiting > 0:
-            input_char = ser.read().decode('utf-8').strip()
-            print(f"Serial input: {input_char}")
-            handle_serial_input(input_char)
+                response = ser.readline().decode('utf-8').rstrip()
+                print(response)
+                time.sleep(3)
+                break
         else:
             manual_input = input("Enter your choice (1-4): ").strip()
             if manual_input:
