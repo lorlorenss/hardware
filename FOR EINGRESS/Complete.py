@@ -6,9 +6,6 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
 import serial
 import re
 
@@ -22,7 +19,7 @@ chrome_options.add_argument('--disable-dev-shm-usage')  # Required for running a
 # Initialize webdriver
 driver = webdriver.Chrome(service=Service(executable_path=chromedriver_path), options=chrome_options)
 
-# Example: Open a webpage
+# Open a webpage
 driver.get('http://192.168.42.64:4200/landingPage')
 
 GPIO.setmode(GPIO.BCM)
@@ -40,35 +37,34 @@ print("Serial OK")
 
 previous_url = None
 shutdown_triggered = False  # Flag to track if shutdown has been triggered
+enrollInProgress = False
+operationComplete = False
 
 def get_current_url():
     try:
-        # Get the current URL from the webdriver instance
         current_url = driver.current_url
         return current_url
-    
     except Exception as e:
         print("Error getting current URL:", e)
         return None
 
 def run_enroll_script():
+    global enrollInProgress, operationComplete
+    enrollInProgress = True
+    operationComplete = False  # Reset operationComplete flag
     try:
-        while True:
-            time.sleep(1)
-            # Send message to Arduino
-            ser.write("enroll \n".encode('utf-8'))
-
-            while ser.in_waiting <= 0:
-                time.sleep(0.01)
-            
-            response = ser.readline().decode('utf-8').rstrip()
-            print(f"response: {response}")
-            input_verified_id(response)  # Use the function to input verified ID
-
-            if "Returning" in response:
-                print("breaking enroll function")
-                break
-
+        ser.write("enroll \n".encode('utf-8'))
+        while not operationComplete:
+            if ser.in_waiting > 0:
+                instruction = ser.readline().decode('utf-8').rstrip()
+                print(instruction)
+                
+                if "Returning" in instruction:
+                    operationComplete = True
+                    enrollInProgress = False
+                    time.sleep(3)
+                else:
+                    input_instruction(instruction)
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
         ser.close()
@@ -93,58 +89,62 @@ def shutdown_pi():
         time.sleep(1)
     subprocess.run(['sudo', 'shutdown', 'now'])
 
-
-def run_id_script():
+def run_id_script(timeout=10):
+    global operationComplete
+    operationComplete = False  # Reset operationComplete flag
+    start_time = time.time()
     try:
-        while True:
-            time.sleep(1)
-            ser.write("identify \n".encode('utf-8'))
+        time.sleep(2)
+        print("Please press finger")
+        time.sleep(2)
+        ser.write("identify \n".encode('utf-8'))
+        while not operationComplete:
+            if ser.in_waiting > 0:
+                response = ser.readline().decode('utf-8').rstrip()
+                print(response)  # This should print "ID: <enrollid> Enrolling Successful"
+                match = re.search(r'ID:(\d+)', response)
+                if match:
+                    verifiedid = match.group(1)
+                    input_verified_id(verifiedid)  # Use the function to input verified ID
 
-            while ser.in_waiting <= 0:
-                time.sleep(0.01)
-            
-            response = ser.readline().decode('utf-8').rstrip()
-            print(response)  # This should print "ID: <enrollid> Enrolling Successful"
-
-            # Parse the enrollid from the response
-            match = re.search(r'ID:(\d+)', response)
-            if match:
-                verifiedid = match.group(1)
-                input_verified_id(verifiedid)  # Use the function to input verified ID
-                break
-            
-            current_url = get_current_url()
-            if current_url.endswith("/landingPage"):
-                print("breaking id function")
-                break
-            elif current_url.endswith("/registration"):
-                print("breaking id function")
-                break
+                if "Returning" in response:
+                    operationComplete = True
+                    enrollInProgress = False
+                    return
+                
+            elif time.time() - start_time > timeout:
+                print("Identification timeout, returning to main loop.")
+                operationComplete = True
+                enrollInProgress = False
+                input_verified_id("Timeout")
+                return
 
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
         ser.close()
 
-# Function to input the verified ID into the web page
 def input_verified_id(verifiedid):
     try:
-        # Find the input element by class name
         input_element = driver.find_element(By.CLASS_NAME, 'hidden-input')
-
-        # Input the verified ID into the input field with class name "hidden-input"
         input_element.send_keys(verifiedid)
-        
-        # Press Enter key to submit (assuming pressing Enter submits the input)
         input_element.send_keys(Keys.ENTER)
-        
         print(f"Successfully inputted ID: {verifiedid}")
-    
     except Exception as e:
         print("Error inputting verified ID:", e)
+
+def input_instruction(instruction):
+    try:
+        input_element = driver.find_element(By.CLASS_NAME, 'hidden-input')
+        input_element.send_keys(instruction)
+        input_element.send_keys(Keys.ENTER)
+        print(f"Successfully inputted instruction: {instruction}")
+    except Exception as e:
+        print("Error inputting instruction:", e)
+
 try:
     # Lock the door initially
     lock_door()
-
+    time.sleep(3)
     # Main loop
     while True:
         if GPIO.input(BUTTON_PIN) == GPIO.LOW:
@@ -154,11 +154,16 @@ try:
             lock_door()
             continue
 
+        if ser.in_waiting > 0:
+            response = ser.readline().decode('utf-8').rstrip()
+            print(response)
+            time.sleep(3)
+            break
+
         current_url = get_current_url()
         if current_url:
             if current_url != previous_url:
                 if current_url.endswith("/landingPage"):
-                    #run_deleteAll_script()
                     print("Landing page opened!")
                     lock_door()  # Lock the door if landing page or another page is open
                     if shutdown_triggered:

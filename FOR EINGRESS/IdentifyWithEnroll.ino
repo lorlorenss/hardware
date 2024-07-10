@@ -3,11 +3,12 @@
 
 int counter = 0;
 FPS_GT511C3 fps(4, 5); // (Arduino SS_RX = pin 4, Arduino SS_TX = pin 5)
-bool enrollInProgress = false;
+bool enrollInProgress;
+
 void setup() {
   Serial.begin(115200);  // Start serial communication at 115200 baud
   fps.Open();
-  
+  enrollInProgress = false;
 }
 
 void loop() {
@@ -25,6 +26,7 @@ void loop() {
     }
     else if (message.indexOf("isIdentifying") != -1) {  // Check if the word "enroll" exists
       enrollInProgress == true;
+      Serial.println("Setting enroll in progress to false");
     }
   }
 }
@@ -33,13 +35,10 @@ void DeleteAll(){
  fps.Open();
 fps.DeleteAll();
 Serial.println("Deleted All fingerprints");
-Serial.println("Returning");
-return;
 }
 
 void Enroll() {
-
-fps.Open();
+  fps.Open();
   // Enroll test
   fps.SetLED(true); // turn on the LED inside the fps
 
@@ -55,7 +54,21 @@ fps.Open();
   // enroll
   Serial.print("Press finger to Enroll #");
   Serial.println(enrollid);
-  while (fps.IsPressFinger() == false) delay(100);
+
+  // Timeout check
+  unsigned long startTime = millis();
+  while (fps.IsPressFinger() == false) {
+    if (millis() - startTime >= 5000) {
+      Serial.println("Registering timeout");
+      fps.SetLED(false);
+      fps.Close();
+      enrollInProgress = false;
+      Serial.println("Returning");
+      return;
+    }
+    delay(100);
+  }
+
   bool bret = fps.CaptureFinger(true);
   int iret = 0;
   if (bret != false) {
@@ -63,14 +76,41 @@ fps.Open();
     fps.Enroll1();
     while (fps.IsPressFinger() == true) delay(100);
     Serial.println("Press same finger again");
-    while (fps.IsPressFinger() == false) delay(100);
+
+    // Reset timeout check
+    startTime = millis();
+    while (fps.IsPressFinger() == false) {
+      if (millis() - startTime >= 5000) {
+        Serial.println("Registering timeout");
+        fps.SetLED(false);
+        fps.Close();
+        enrollInProgress = false;
+        Serial.println("Registering timeout");
+        return;
+      }
+      delay(100);
+    }
+
     bret = fps.CaptureFinger(true);
     if (bret != false) {
       Serial.println("Remove finger");
       fps.Enroll2();
       while (fps.IsPressFinger() == true) delay(100);
       Serial.println("Press same finger yet again");
-      while (fps.IsPressFinger() == false) delay(100);
+
+      // Reset timeout check
+      startTime = millis();
+      while (fps.IsPressFinger() == false) {
+        if (millis() - startTime >= 5000) {
+          Serial.println("Registering timeout");
+          fps.SetLED(false);
+          fps.Close();
+          enrollInProgress = false;
+          return;
+        }
+        delay(100);
+      }
+
       bret = fps.CaptureFinger(true);
       if (bret != false) {
         Serial.println("Remove finger");
@@ -84,44 +124,42 @@ fps.Open();
             Serial.println(id);
             fps.Close();
             enrollInProgress = false;
+            Serial.print("Returning");
+            delay(5000);
             return;
           }
           Serial.print("ID: ");
           Serial.println(enrollid); // Display the enrolled ID
           Serial.print("Enrolling Successful");
           fps.Close();
-          enrollInProgress = false;
           Serial.print("Returning");
+          delay(5000);
           return;
         } else {
           Serial.print("Enrolling Failed with error code: ");
           Serial.println(iret);
           Serial.print("Returning");
           fps.Close();
-          enrollInProgress = false;
+          
           return;
         }
       } 
       else Serial.println("Failed to capture third finger");
       Serial.print("Returning");
           fps.Close();
-          enrollInProgress = false;
           return;
     } 
     else Serial.println("Failed to capture second finger");
     Serial.print("Returning");
           fps.Close();
-          enrollInProgress = false;
           return;
   } 
   else Serial.println("Failed to capture first finger");
   Serial.print("Returning");
           fps.Close();
-          enrollInProgress = false;
           return;
-
-
 }
+
 
 void Identify(){
    fps.Open();
@@ -134,14 +172,10 @@ void Identify(){
     {
       Serial.print("ID:");
       Serial.println(id);
-      Serial.println("Returning");
-      return;
     }
     else
     {//if unable to recognize
       Serial.println("Finger not found");
-      Serial.println("Returning");
-      return;
     }
   }
   else
