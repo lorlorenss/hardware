@@ -9,7 +9,7 @@ void setup() {
   fps.Open();
 }
 
-int storedID = -1;  // Initialize storedID to -1 or another appropriate default value
+int storedID;  // Initialize storedID to -1 or another appropriate default value
 
 void loop() {
   Blink();  // Function to blink an LED or perform any other periodic task
@@ -34,21 +34,33 @@ void loop() {
   }
 }
 
-void DeleteFingerprint(){
-  bool existentID = true;
-  existentID = fps.CheckEnrolled(storedID);
-  if (existentID == false){
-    Serial.println("ID not currently registered in sensor");
-    Serial.println("Failed");
-    return;
-  }
-  else{
-  fps.DeleteID(storedID);
-  Serial.println("Success");
-  return; 
-  }
+// void DeleteFingerprint(){
+//   bool existentID = true;
+//   existentID = fps.CheckEnrolled(storedID);
+//   if (existentID == false){
+//     Serial.println("Failed");
+//     return;
+//   }
+//   else{
+//   fps.DeleteID(storedID);
+//   Serial.println("Success");
+//   delay(2000);
+//   Serial.println("Returning");
+//   return;
+//   }
 
   
+// }
+
+void DeleteFingerprint(){
+ bool deletedID = false;
+ if(fps.DeleteID(storedID) == true){
+  Serial.println("Success");
+ }
+ else if(fps.DeleteID(storedID) == false){
+  Serial.println("Failed");
+  }
+  return;
 }
 
 void DeleteAll(){

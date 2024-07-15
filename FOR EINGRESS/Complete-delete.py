@@ -93,14 +93,13 @@ def shutdown_pi():
         time.sleep(1)
     subprocess.run(['sudo', 'shutdown', 'now'])
 
-def run_id_script(timeout=10):
+def run_id_script(timeout=5):
     global operationComplete
     operationComplete = False  # Reset operationComplete flag
     start_time = time.time()
     try:
-        time.sleep(2)
         print("Please press finger")
-        time.sleep(2)
+        time.sleep(1)
         ser.write("identify \n".encode('utf-8'))
         while not operationComplete:
             if ser.in_waiting > 0:
@@ -135,7 +134,7 @@ def input_verified_id(verifiedid):
         input_element = driver.find_element(By.CLASS_NAME, 'hidden-input')
         input_element.send_keys(verifiedid)
         input_element.send_keys(Keys.ENTER)
-        print(f"Successfully inputted ID: {verifiedid}")
+        # print(f"Successfully inputted ID: {verifiedid}")
     except Exception as e:
         print("Error inputting verified ID:", e)
 
@@ -144,9 +143,17 @@ def input_instruction(instruction):
         input_element = driver.find_element(By.CLASS_NAME, 'hidden-input')
         input_element.send_keys(instruction)
         input_element.send_keys(Keys.ENTER)
-        print(f"Successfully inputted instruction: {instruction}")
+        # print(f"Successfully inputted instruction: {instruction}")
     except Exception as e:
         print("Error inputting instruction:", e)
+
+def input_DeleteStatus(status):
+    try:
+        input_element = driver.find_element(By.CLASS_NAME, 'hidden-input')
+        input_element.send_keys(status)
+        input_element.send_keys(Keys.ENTER)
+    except Exception as e:
+        print("Error inputting status:", e)
 
 def storeID():
     try:
@@ -187,23 +194,23 @@ def extract_fingerprint_id(instruction):
 
 def send_to_arduino(fingerprint_id):
     try:
-        # Send the fingerprint_id to Arduino via serial
-        command = f"StoredID {fingerprint_id}\n"
-        ser.write(command.encode('utf-8'))
+        ser.write(f"StoredID {fingerprint_id}\n".encode('utf-8'))
         print(f"Sent 'StoredID {fingerprint_id}' command to Arduino")
-        while not operationComplete:
+        while True:
             if ser.in_waiting > 0:
                 instruction = ser.readline().decode('utf-8').rstrip()
                 print(instruction)
                 if "Success" in instruction:
-                    input_instruction(instruction)
+                    time.sleep(1)
+                    input_DeleteStatus(instruction)
+                    return
                 elif "Failed" in instruction:
-                    input_instruction(instruction)
-                
+                    time.sleep(1)
+                    input_DeleteStatus(instruction)
+                    return
     except Exception as e:
         print("Error sending command to Arduino:", e)
         return False
-
 
 try:
     # Lock the door initially
@@ -256,4 +263,5 @@ except KeyboardInterrupt:
     pass  # Do nothing on keyboard interrupt
 finally:
     ser.close()
+    print("Serial connection closed")
     driver.quit()
