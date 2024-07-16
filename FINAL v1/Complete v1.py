@@ -11,6 +11,18 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import serial
 import re
+
+# #uncomment when it wont fullscreen. replace the step1
+# chromium_command = [
+#     "chromium-browser",
+#     "--remote-debugging-port=9222",
+#     "--start-fullscreen",
+#     "--user-data-dir=/tmp/chrome_dev"  # Use a separate user data directory
+# ]
+
+# # Start Chromium
+# subprocess.Popen(chromium_command)
+
 # Step 1: Start Chromium with Remote Debugging in Fullscreen Mode
 subprocess.Popen(['chromium-browser', '--remote-debugging-port=9222', '--start-fullscreen'], shell=False)
 

@@ -12,7 +12,7 @@ void setup() {
 int storedID;  // Initialize storedID to -1 or another appropriate default value
 
 void loop() {
-  Blink();  // Function to blink an LED or perform any other periodic task
+  
   if (Serial.available() > 0) {  // Check if there is data available to read from serial
     String message = Serial.readStringUntil('\n');  // Read the incoming message until newline character
     // Check for different commands in the received message
@@ -33,24 +33,6 @@ void loop() {
     }
   }
 }
-
-// void DeleteFingerprint(){
-//   bool existentID = true;
-//   existentID = fps.CheckEnrolled(storedID);
-//   if (existentID == false){
-//     Serial.println("Failed");
-//     return;
-//   }
-//   else{
-//   fps.DeleteID(storedID);
-//   Serial.println("Success");
-//   delay(2000);
-//   Serial.println("Returning");
-//   return;
-//   }
-
-  
-// }
 
 void DeleteFingerprint(){
  bool deletedID = false;
@@ -159,7 +141,7 @@ fps.Open();
 
 void Identify(){
    fps.Open();
-  fps.SetLED(true);
+  
   if (fps.IsPressFinger())
   {
     fps.CaptureFinger(false);
@@ -181,6 +163,7 @@ void Identify(){
   else
   {
     Serial.println("Please press finger");
+    fps.SetLED(true);
   }
   delay(100);
 }
