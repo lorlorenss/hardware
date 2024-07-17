@@ -4,7 +4,19 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
-# Step 1: Start Chromium with Remote Debugging in Fullscreen Mode
+
+#uncomment when it wont fullscreen. replace the step1
+# chromium_command = [
+#     "chromium-browser",
+#     "--remote-debugging-port=9222",
+#     "--start-fullscreen",
+#     "--user-data-dir=/tmp/chrome_dev"  # Use a separate user data directory
+# ]
+
+# # Start Chromium
+# subprocess.Popen(chromium_command)
+
+# # Step 1: Start Chromium with Remote Debugging in Fullscreen Mode
 subprocess.Popen(['chromium-browser', '--remote-debugging-port=9222', '--start-fullscreen'], shell=False)
 
 # Give Chromium a few seconds to start
