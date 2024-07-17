@@ -12,19 +12,19 @@ from selenium.common.exceptions import TimeoutException
 import serial
 import re
 
-# #uncomment when it wont fullscreen. replace the step1
-# chromium_command = [
-#     "chromium-browser",
-#     "--remote-debugging-port=9222",
-#     "--start-fullscreen",
-#     "--user-data-dir=/tmp/chrome_dev"  # Use a separate user data directory
-# ]
+#uncomment when it wont fullscreen. replace the step1
+chromium_command = [
+    "chromium-browser",
+    "--remote-debugging-port=9222",
+    "--start-fullscreen",
+    "--user-data-dir=/tmp/chrome_dev"  # Use a separate user data directory
+]
 
-# # Start Chromium
-# subprocess.Popen(chromium_command)
+# Step 2: Start Chromium and redirect stdout and stderr to subprocess.DEVNULL to suppress output
+subprocess.Popen(chromium_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
 
-# Step 1: Start Chromium with Remote Debugging in Fullscreen Mode
-subprocess.Popen(['chromium-browser', '--remote-debugging-port=9222', '--start-fullscreen'], shell=False)
+# # Step 1: Start Chromium with Remote Debugging in Fullscreen Mode
+# subprocess.Popen(['chromium-browser', '--remote-debugging-port=9222', '--start-fullscreen'], shell=False)
 
 # Give Chromium a few seconds to start
 time.sleep(5)
@@ -237,10 +237,8 @@ try:
     # Main loop
     while True:
         if GPIO.input(BUTTON_PIN) == GPIO.LOW:
-            print("Emergency exit button pressed, unlocking door...")
-            unlock_door()
-            time.sleep(10)
-            lock_door()
+            input_instruction("emergency")
+            time.sleep(0.2)
             continue
 
         if ser.in_waiting > 0:
@@ -270,6 +268,12 @@ try:
                 elif current_url.endswith("/afterLoginPage"):
                     print("Someone Logged In")
                     unlock_door()  # Unlock the door if after login page is open
+                elif current_url.endswith("/emergency"):
+                    print("Emergency door lock pressed")
+                    unlock_door()
+                elif current_url.endswith("/welcomeInterns"):
+                    print("Intern RFID Tapped")
+                    unlock_door()
                 elif "/shutdown" in current_url and not shutdown_triggered:
                     shutdown_pi()
                     shutdown_triggered = True
