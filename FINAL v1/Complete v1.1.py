@@ -12,37 +12,23 @@ from selenium.common.exceptions import TimeoutException
 import serial
 import re
 
-#uncomment when it wont fullscreen. replace the step1
-chromium_command = [
-    "chromium-browser",
-    "--remote-debugging-port=9222",
-    "--start-fullscreen",
-    "--user-data-dir=/tmp/chrome_dev"  # Use a separate user data directory
-]
 
-# Step 2: Start Chromium and redirect stdout and stderr to subprocess.DEVNULL to suppress output
-subprocess.Popen(chromium_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
+chromedriver_path = '/usr/bin/chromedriver'
 
-# # Step 1: Start Chromium with Remote Debugging in Fullscreen Mode
-# subprocess.Popen(['chromium-browser', '--remote-debugging-port=9222', '--start-fullscreen'], shell=False)
-
-# Give Chromium a few seconds to start
-time.sleep(5)
-
-# Step 2: Connect Selenium to the Debugging Port
+# Set Chrome options
 chrome_options = Options()
-chrome_options.add_experimental_option("debuggerAddress", "localhost:9222")
 chrome_options.add_argument('--no-sandbox')  # Required for running as root in Linux
 chrome_options.add_argument('--disable-dev-shm-usage')  # Required for running as root in Linux
 
-# Path to ChromeDriver
-chromedriver_path = '/usr/bin/chromedriver'
-
-# Initialize webdriver with Chrome options
+# Initialize webdriver
 driver = webdriver.Chrome(service=Service(executable_path=chromedriver_path), options=chrome_options)
 
-# Step 3: Use Selenium to Navigate to the Landing Page
+# Open a webpage
 driver.get('http://192.168.42.64:4200/landingPage')
+
+time.sleep(3)
+
+driver.fullscreen_window()
 
 GPIO.setmode(GPIO.BCM)
 
