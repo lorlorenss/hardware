@@ -37,6 +37,13 @@ void loop() {
         enrollInProgress = false;
         Serial.println("Setting enroll in progress to false");
         break;
+      case '5':
+      Serial.println("counting total enrolled");
+        countEnrolled();
+        break;
+       case '6':
+        download();
+        break;
       default:
         Serial.println("Invalid input");
         break;
@@ -51,6 +58,8 @@ void DisplayChoices() {
   Serial.println("2: Identify Fingerprint");
   Serial.println("3: Delete All Fingerprints");
   Serial.println("4: Reset Enrollment Status");
+  Serial.println("5: Count enrolled Fingerprints");
+  Serial.println("6: Download Fingerprint");
 }
 
 void DeleteAll() {
@@ -164,4 +173,23 @@ void Blink() {
   delay(1000);
   fps.SetLED(true);
   delay(1000);
+}
+
+void countEnrolled(){
+   int count = fps.GetEnrollCount();
+   Serial.print("Total Enrolled: ");
+    Serial.println(count);
+}
+
+void download() {
+    int input = 0;
+    Serial.print("You entered: ");
+    Serial.println(input);
+
+    int downloaded = fps.GetTemplate(input);
+    
+    // Output the result
+    Serial.print("Template #: ");
+    Serial.println(downloaded);
+    
 }

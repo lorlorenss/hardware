@@ -699,7 +699,7 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 //{
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
-	//return false;
+	//return false
 //}
 
 // Uploads a template to the fps
