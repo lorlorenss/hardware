@@ -24,7 +24,7 @@ chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
 driver = webdriver.Chrome(service=Service(executable_path=chromedriver_path), options=chrome_options)
 
 # Open a webpage
-driver.get('http://192.168.42.64:4200/landingPage')
+driver.get('https://jairoeingressdui.azurewebsites.net/landingPage')
 
 time.sleep(3)
 
@@ -216,6 +216,17 @@ def send_to_arduino(fingerprint_id):
         print("Error sending command to Arduino:", e)
         return False
 
+def reboot_pi():
+    print("Shutting down Raspberry Pi...")
+    for i in range(3, 0, -1):
+        print(f"Shutting down in {i} seconds...")
+        if get_current_url() == "http://192.168.1.2:4200/landingPage":
+            print("Shutdown canceled.")
+            shutdown_triggered = False
+            return
+        time.sleep(1)
+    subprocess.run(['sudo', 'reboot'])
+
 try:
     # Lock the door initially
     lock_door()
@@ -263,6 +274,8 @@ try:
                 elif "/shutdown" in current_url and not shutdown_triggered:
                     shutdown_pi()
                     shutdown_triggered = True
+                elif "/reboot" in current_url:
+                    reboot_pi()
                 previous_url = current_url
 
         time.sleep(1)  # Check every 1 second
