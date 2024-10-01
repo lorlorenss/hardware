@@ -90,7 +90,7 @@ def shutdown_pi():
     print("Shutting down Raspberry Pi...")
     for i in range(10, 0, -1):
         print(f"Shutting down in {i} seconds...")
-        if get_current_url() == "http://192.168.1.2:4200/landingPage":
+        if get_current_url() == "https://jairoeingressdui.azurewebsites.net/landingPage":
             print("Shutdown canceled.")
             shutdown_triggered = False
             return
@@ -217,10 +217,10 @@ def send_to_arduino(fingerprint_id):
         return False
 
 def reboot_pi():
-    print("Shutting down Raspberry Pi...")
+    print("Rebooting Raspberry Pi...")
     for i in range(3, 0, -1):
-        print(f"Shutting down in {i} seconds...")
-        if get_current_url() == "http://192.168.1.2:4200/landingPage":
+        print(f"Rebooting in {i} seconds...")
+        if get_current_url() == "https://jairoeingressdui.azurewebsites.net/landingPage":
             print("Shutdown canceled.")
             shutdown_triggered = False
             return
