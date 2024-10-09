@@ -19,6 +19,7 @@ void loop() {
     if (message.indexOf("enroll") != -1) {
       Enroll();  // Function to handle enrollment process
     } else if (message.indexOf("identify") != -1) {
+      delay(2000);
       enrollInProgress = true;  // Set a flag indicating identification process is in progress
       Identify();  // Function to handle identification process
     } else if (message.indexOf("deleteAll") != -1) {
