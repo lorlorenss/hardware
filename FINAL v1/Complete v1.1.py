@@ -90,14 +90,26 @@ def shutdown_pi():
     print("Shutting down Raspberry Pi...")
     for i in range(10, 0, -1):
         print(f"Shutting down in {i} seconds...")
-        if get_current_url() == "http://192.168.1.2:4200/landingPage":
+        if current_url.endswith("/landingPage"):
             print("Shutdown canceled.")
             shutdown_triggered = False
             return
         time.sleep(1)
     subprocess.run(['sudo', 'shutdown', 'now'])
 
-def run_id_script():
+def reboot_pi():
+    global shutdown_triggered
+    print("Rebooting Raspberry Pi...")
+    for i in range(10, 0, -1):
+        print(f"Rebooting in {i} seconds...")
+        if current_url.endswith("/landingPage"):
+            print("reboot canceled.")
+            shutdown_triggered = False
+            return
+        time.sleep(1)
+    subprocess.run(['sudo', 'reboot'])
+
+def run_id_script(timeout=10):
     global operationComplete
     operationComplete = False  # Reset operationComplete flag
     start_time = time.time()
@@ -117,19 +129,19 @@ def run_id_script():
                     operationComplete = True
                     enrollInProgress = False
                     return
+                    
                 if "Timeout" in response:
                     input_verified_id("Timeout")
-                    return
 
                 elif "Finger not found" in response:
                     input_verified_id("Error")
 
-            # elif time.time() - start_time > timeout:
-            #     print("Identification timeout, returning to main loop.")
-            #     operationComplete = True
-            #     enrollInProgress = False
-            #     input_verified_id("Timeout")
-            #     return
+            elif time.time() - start_time > timeout:
+                print("Identification timeout, returning to main loop.")
+                operationComplete = True
+                enrollInProgress = False
+                input_verified_id("Timeout")
+                return
 
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")
@@ -265,13 +277,11 @@ try:
                 elif "/shutdown" in current_url and not shutdown_triggered:
                     shutdown_pi()
                     shutdown_triggered = True
+                elif "/reboot" in current_url and not shutdown_triggered:
+                    reboot_pi()
                 previous_url = current_url
 
         time.sleep(1)  # Check every 1 second
 
 except KeyboardInterrupt:
     pass  # Do nothing on keyboard interrupt
-finally:
-    ser.close()
-    print("Serial connection closed")
-    driver.quit()

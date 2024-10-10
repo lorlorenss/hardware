@@ -6,19 +6,19 @@ FPS_GT511C3 fps(4, 5); // (Arduino SS_RX = pin 4, Arduino SS_TX = pin 5)
 bool enrollInProgress = false;
 void setup() {
   Serial.begin(115200);  // Start serial communication at 115200 baud
-  fps.Open();
 }
 
 int storedID;  // Initialize storedID to -1 or another appropriate default value
 
 void loop() {
-  Blink();  // Function to blink an LED or perform any other periodic task
+  
   if (Serial.available() > 0) {  // Check if there is data available to read from serial
     String message = Serial.readStringUntil('\n');  // Read the incoming message until newline character
     // Check for different commands in the received message
     if (message.indexOf("enroll") != -1) {
       Enroll();  // Function to handle enrollment process
     } else if (message.indexOf("identify") != -1) {
+      fps.Open();
       enrollInProgress = true;  // Set a flag indicating identification process is in progress
       Identify();  // Function to handle identification process
     } else if (message.indexOf("deleteAll") != -1) {
@@ -160,7 +160,6 @@ fps.Open();
 void Identify(){
    fps.Open();
    fps.SetLED(true);
-   
    for (int attempts = 0; attempts < 5; attempts++) {
      if (fps.IsPressFinger()) {
        fps.CaptureFinger(false);
@@ -169,11 +168,15 @@ void Identify(){
          Serial.print("ID:");
          Serial.println(id);
          Serial.println("Returning");
+         fps.SetLED(false);
          return;
        }
        else { // if unable to recognize
          Serial.println("Finger not found");
+         Serial.println("Closing sensor");
          Serial.println("Returning");
+         fps.SetLED(false);
+         fps.Close();
          return;
        }
      }
@@ -184,6 +187,10 @@ void Identify(){
    }
   
    Serial.println("Timeout");
+   Serial.println("Closing sensor");
+   Serial.println("Returning");
+   fps.SetLED(false);
+   fps.Close();
    return;
 }
 
