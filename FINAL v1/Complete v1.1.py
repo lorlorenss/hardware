@@ -24,7 +24,7 @@ chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
 driver = webdriver.Chrome(service=Service(executable_path=chromedriver_path), options=chrome_options)
 
 # Open a webpage
-driver.get('http://192.168.42.64:4200/landingPage')
+driver.get('https://jairoeingressdui.azurewebsites.net/landingPage')
 
 time.sleep(3)
 
@@ -97,12 +97,11 @@ def shutdown_pi():
         time.sleep(1)
     subprocess.run(['sudo', 'shutdown', 'now'])
 
-def run_id_script(timeout=5):
+def run_id_script():
     global operationComplete
     operationComplete = False  # Reset operationComplete flag
     start_time = time.time()
     try:
-        print("Please press finger")
         time.sleep(1)
         ser.write("identify \n".encode('utf-8'))
         while not operationComplete:
@@ -118,16 +117,19 @@ def run_id_script(timeout=5):
                     operationComplete = True
                     enrollInProgress = False
                     return
+                if "Timeout" in response:
+                    input_verified_id("Timeout")
+                    return
 
                 elif "Finger not found" in response:
                     input_verified_id("Error")
 
-            elif time.time() - start_time > timeout:
-                print("Identification timeout, returning to main loop.")
-                operationComplete = True
-                enrollInProgress = False
-                input_verified_id("Timeout")
-                return
+            # elif time.time() - start_time > timeout:
+            #     print("Identification timeout, returning to main loop.")
+            #     operationComplete = True
+            #     enrollInProgress = False
+            #     input_verified_id("Timeout")
+            #     return
 
     except KeyboardInterrupt:
         print("Keyboard interrupt!, Closing communication")

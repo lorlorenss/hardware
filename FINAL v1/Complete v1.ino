@@ -19,7 +19,6 @@ void loop() {
     if (message.indexOf("enroll") != -1) {
       Enroll();  // Function to handle enrollment process
     } else if (message.indexOf("identify") != -1) {
-      delay(2000);
       enrollInProgress = true;  // Set a flag indicating identification process is in progress
       Identify();  // Function to handle identification process
     } else if (message.indexOf("deleteAll") != -1) {
@@ -160,31 +159,34 @@ fps.Open();
 
 void Identify(){
    fps.Open();
-  fps.SetLED(true);
-  if (fps.IsPressFinger())
-  {
-    fps.CaptureFinger(false);
-    int id = fps.Identify1_N();
-    if (id <200) 
-    {
-      Serial.print("ID:");
-      Serial.println(id);
-      Serial.println("Returning");
-      return;
-    }
-    else
-    {//if unable to recognize
-      Serial.println("Finger not found");
-      Serial.println("Returning");
-      return;
-    }
-  }
-  else
-  {
-    Serial.println("Please press finger");
-  }
-  delay(100);
+   fps.SetLED(true);
+   
+   for (int attempts = 0; attempts < 5; attempts++) {
+     if (fps.IsPressFinger()) {
+       fps.CaptureFinger(false);
+       int id = fps.Identify1_N();
+       if (id < 200) {
+         Serial.print("ID:");
+         Serial.println(id);
+         Serial.println("Returning");
+         return;
+       }
+       else { // if unable to recognize
+         Serial.println("Finger not found");
+         Serial.println("Returning");
+         return;
+       }
+     }
+     else {
+       Serial.println("Attempt " + String(attempts + 1) + " failed. No finger detected.");
+     }
+     delay(1000); // small delay before next attempt
+   }
+  
+   Serial.println("Timeout");
+   return;
 }
+
 
 void Blink(){
    fps.Open();
